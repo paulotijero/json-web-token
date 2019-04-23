@@ -1,24 +1,25 @@
 class ApplicationController < ActionController::API
-  skip_before_action :authenticate_request
-
-  def authenticate
-    token = generate_token if user
-
-    if token.nil?
-      render json: { error: "Invalid credentials" }, status: :unauthorized
-    else
-      render json: { auth_token: token }
-    end
-  end
+  before_action :authenticate_request
+  attr_reader :current_user
 
   private
 
-  def generate_token
-    JSONWebToken.encode(user_id: user.id) if user
+  def authenticate_request
+    @current_user = user(request.headers)
+    render json: { error: 'Not Authorized' }, status: 401 unless @current_user
   end
 
   def user
-    user = User.find_by_email(params[:email])
-    user if user && user.authenticate(params[:password])
+    User.find(decoded_auth_token[:user_id]) if decoded_auth_token
+  end
+
+  def decoded_auth_token
+    @decoded_auth_token ||= JSONWebToken.decode(http_auth_header)
+  end
+
+  def http_auth_header
+    if request.headers['Authorization'].present?
+      return request.headers['Authorization'].split(' ').last
+    end
   end
 end
