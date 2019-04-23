@@ -135,3 +135,31 @@ class ApplicationController < ActionController::API
   end
 end
 ```
+
+Now to test JSON Web Token
+
+create user using `rails console`
+
+```
+User.create(name: "paulo", email: "paulotijero@gmail.com", password: "123456")
+
+```
+
+If you list to the created users `User.all`, you will see that password was saved encrypted.
+
+```
+#<ActiveRecord::Relation [#<User id: 1, name: "paulo", email: "paulotijero@gmail.com", password_digest: "$2a$10$m9uo4ZQNNxVMqDeuJ3MJkOP008I0jQla8zvgEmFb6TU...", created_at: "2019-04-23 16:52:34", updated_at: "2019-04-23 16:52:34">]>
+```
+
+Now run `rails server` in your console and in a new console write this:
+
+```
+curl -X POST http://localhost:3000/authenticate -H "Content-Type: application/json"  --data '{ "email": "paulotijero@gmail.com", "password": "123456" }'
+```
+
+This will generate a token json like this:
+
+```
+{"auth_token":"eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE1NTYxMjc5Mzl9.RNQp-dqwXxLToDrv_L1t2ffpb2mTPVfmhzxpEsDMiHs"}%
+
+```
